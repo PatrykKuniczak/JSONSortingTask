@@ -2,19 +2,9 @@ import * as fs from "fs";
 import {removeDuplicates} from "./main";
 
 
-test("test test", () => {
-    let forTestJSON;
-    let testJSON;
+test("test json filtering", () => {
+    const forTestJSON = fs.readFileSync("forTest.json", 'utf8');
+    const afterTestJSON = fs.readFileSync("afterTest.json", "utf8");
 
-    fs.readFile("forTest.json", 'utf8', async (err, data) => {
-        if (err) throw err;
-        forTestJSON = data;
-    })
-
-    fs.readFile("test.json", async (err, data) => {
-        if (err) throw err;
-        testJSON = data;
-    })
-
-    // expect(removeDuplicates(forTestJSON)).toEqual(testJSON);
+    expect(removeDuplicates(forTestJSON)).toMatch(afterTestJSON);
 })
