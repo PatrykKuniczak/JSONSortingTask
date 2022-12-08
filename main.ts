@@ -2,25 +2,32 @@ import * as fs from "fs";
 
 
 export const removeDuplicates = (JSONObject) => {
-    const setWithoutIdAndType: Set<object> = new Set();
-    const setWithRest: Set<object> = new Set();
+    const setWithoutIdAndType: Set<string> = new Set();
+    const arrayWithRest: Array<string> = [];
 
     JSON.parse(JSONObject).forEach(({id, type, ...object}) => {
-        setWithoutIdAndType.add(object)
-        setWithRest.add({id, type})
+        if (!setWithoutIdAndType.has(JSON.stringify(object))) {
+            setWithoutIdAndType.add(JSON.stringify(object));
+            arrayWithRest.push(JSON.stringify({id, type}));
+        }
     });
 
-    return Array.from(setWithoutIdAndType).map((object, index) => ({...setWithRest[index], ...object}));
+    const parsedFirstJSON = [...setWithoutIdAndType].map(obj => JSON.parse(obj));
+    const parsedSecondJSON = [...arrayWithRest].map(obj => JSON.parse(obj));
+
+    return parsedFirstJSON.map((object, index) => ({...parsedSecondJSON[index], ...object}));
 }
 
 const main = (openPath, newPath) =>
     fs.readFile(openPath, 'utf8', async (err, data) => {
+        const start = performance.now();
         if (err) throw err;
 
-        fs.writeFile(newPath, JSON.stringify(removeDuplicates(data)), {flag: "a"}, err => {
+        fs.writeFile(newPath, JSON.stringify(removeDuplicates(data)), {flag: "w"}, err => {
             if (err) throw err;
         });
+
+        console.log(performance.now() - start);
     });
 
-
-main("long.json", "new.json");
+main("long.json", "created.json")
