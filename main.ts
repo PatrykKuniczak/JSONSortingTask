@@ -8,14 +8,14 @@ export const removeDuplicates = (JSONObject) => {
     JSON.parse(JSONObject).forEach(({id, type, ...object}) => {
         if (!setWithoutIdAndType.has(JSON.stringify(object))) {
             setWithoutIdAndType.add(JSON.stringify(object));
-            arrayWithRest.push(JSON.stringify({id, type}));
+            arrayWithRest.push(JSON.stringify({type, id}));
         }
     });
 
     const parsedFirstJSON = [...setWithoutIdAndType].map(obj => JSON.parse(obj));
     const parsedSecondJSON = [...arrayWithRest].map(obj => JSON.parse(obj));
 
-    return parsedFirstJSON.map((object, index) => ({...parsedSecondJSON[index], ...object}));
+    return JSON.stringify(parsedFirstJSON.map((object, index) => ({...parsedSecondJSON[index], ...object})));
 }
 
 const main = (openPath, newPath) =>
@@ -23,7 +23,7 @@ const main = (openPath, newPath) =>
         const start = performance.now();
         if (err) throw err;
 
-        fs.writeFile(newPath, JSON.stringify(removeDuplicates(data)), {flag: "w"}, err => {
+        fs.writeFile(newPath, removeDuplicates(data), {flag: "w"}, err => {
             if (err) throw err;
         });
 
