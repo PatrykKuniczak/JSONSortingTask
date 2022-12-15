@@ -1,21 +1,32 @@
 import * as fs from "fs";
 
 
-export const removeDuplicates = (JSONObject) => {
-    const setWithoutIdAndType: Set<string> = new Set();
-    const arrayWithRest: Array<string> = [];
+export const removeDuplicates = JSONObject => {
+    type NestedObject = { [key: string]: string | NestedObject };
+    const parsedJSON: NestedObject[] = JSON.parse(JSONObject);
 
-    JSON.parse(JSONObject).forEach(({id, type, ...object}) => {
-        if (!setWithoutIdAndType.has(JSON.stringify(object))) {
-            setWithoutIdAndType.add(JSON.stringify(object));
-            arrayWithRest.push(JSON.stringify({type, id}));
+    const checkNestedProperties = (prop: string | object, propFromNextObj: string | object, otherObj: object) => {
+        if (prop[1] === propFromNextObj[1])
+            delete otherObj[propFromNextObj[0]];
+
+        else if (prop[1] instanceof Object) {
+            !Object.keys(otherObj[propFromNextObj[0]]).length ? delete otherObj[propFromNextObj[0]]
+                : checkNestedProperties(Object.entries(prop[1]), Object.entries(propFromNextObj[1]), otherObj);
         }
-    });
 
-    const parsedFirstJSON = [...setWithoutIdAndType].map(obj => JSON.parse(obj));
-    const parsedSecondJSON = [...arrayWithRest].map(obj => JSON.parse(obj));
+    }
 
-    return JSON.stringify(parsedFirstJSON.map((object, index) => ({...parsedSecondJSON[index], ...object})));
+    parsedJSON.forEach(obj =>
+        parsedJSON.forEach(otherObj => {
+            if (obj !== otherObj)
+                Object.entries(obj).forEach(prop =>
+                    Object.entries(otherObj).forEach(propFromNextObj =>
+                        checkNestedProperties(prop, propFromNextObj, otherObj))
+                )
+        })
+    )
+
+    return JSON.stringify(parsedJSON)
 }
 
 const main = (openPath, newPath) =>
@@ -30,4 +41,4 @@ const main = (openPath, newPath) =>
         console.log(performance.now() - start);
     });
 
-main("long.json", "created.json")
+// main("long.json", "created.json")
